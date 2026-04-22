@@ -13,9 +13,17 @@ services:
   backend:
     build: ./backend/
     env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
     volumes:
       - static:/backend_static
       - media:/app/media
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   frontend:
     env_file: .env
     build: ./frontend/
@@ -27,6 +35,8 @@ services:
     env_file: .env
     ports:
       - 9000:80
+    depends_on:
+      - backend
     volumes:
       - static:/staticfiles
       - media:/app/media
